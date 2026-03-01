@@ -191,6 +191,7 @@ private:
 	mc_raptor_intref::ReferenceSource reference_source {mc_raptor_intref::ReferenceSource::EXTERNAL};
 	DEFINE_PARAMETERS(
 		(ParamInt<px4::params::IMU_GYRO_RATEMAX>) _param_imu_gyro_ratemax,
+		(ParamBool<px4::params::MC_RAPTOR_VERBOS>) _param_mc_raptor_verbose,
 		(ParamBool<px4::params::MC_RAPTOR_OFFB>) _param_mc_raptor_offboard,
 		(ParamInt<px4::params::MC_RAPTOR_INTREF>) _param_mc_raptor_intref
 	)

@@ -243,6 +243,8 @@ bool Raptor::update_observations_and_mode_state(hrt_abstime current_time, bool &
 
 void Raptor::update_executor_frequency_statistics(const EXECUTOR_CONFIG::EXECUTOR_STATUS &executor_status, hrt_abstime current_time)
 {
+	const bool verbose_frequency_logs = _param_mc_raptor_verbose.get();
+
 	if (executor_status.source == decltype(executor_status.source)::CONTROL) {
 		if (executor_status.step_type == decltype(executor_status.step_type)::INTERMEDIATE) {
 			last_intermediate_status = executor_status;
@@ -256,7 +258,7 @@ void Raptor::update_executor_frequency_statistics(const EXECUTOR_CONFIG::EXECUTO
 
 	if (!timestamp_last_policy_frequency_check_set
 	    || (current_time - timestamp_last_policy_frequency_check) > POLICY_FREQUENCY_CHECK_INTERVAL) {
-		if (timestamp_last_policy_frequency_check_set) {
+		if (verbose_frequency_logs && timestamp_last_policy_frequency_check_set) {
 			if (last_intermediate_status_set) {
 				if (!last_intermediate_status.timing_bias.OK || !last_intermediate_status.timing_jitter.OK) {
 					PX4_WARN("Raptor: INTERMEDIATE: BIAS %fx JITTER %fx", (double)last_intermediate_status.timing_bias.MAGNITUDE,
