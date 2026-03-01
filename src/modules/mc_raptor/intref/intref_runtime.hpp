@@ -23,6 +23,8 @@ struct IntRefStatusSnapshot {
 	bool transition_active = false;
 	float transition_progress = 0.0f;
 	float transition_remaining_s = 0.0f;
+	bool circle_center_valid = false;
+	float circle_center_position[3] {NAN, NAN, NAN};
 };
 
 struct IntRefStepInput {

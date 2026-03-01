@@ -49,6 +49,13 @@ void print_snapshot(const IntRefRuntimeManager &runtime)
 	PX4_INFO_RAW("transition: active=%s progress=%.3f remaining=%.3fs\n",
 		     snapshot.transition_active ? "true" : "false",
 		     (double)snapshot.transition_progress, (double)snapshot.transition_remaining_s);
+
+	if (snapshot.circle_center_valid) {
+		PX4_INFO_RAW("circle center: x=%.3f y=%.3f z=%.3f\n",
+			     (double)snapshot.circle_center_position[0],
+			     (double)snapshot.circle_center_position[1],
+			     (double)snapshot.circle_center_position[2]);
+	}
 }
 
 } // namespace
@@ -196,11 +203,26 @@ int handle_intref_command(IntRefRuntimeManager &runtime, int argc, char *argv[])
 			return PX4_ERROR;
 		}
 
-		PX4_INFO_RAW("intref trajectory configured: %s\n", trajectory_name);
-		print_line("note: source mode unchanged, use 'mc_raptor mode set intref' to activate internal reference");
-		print_trajectory_summary(command);
-		return PX4_OK;
-	}
+			PX4_INFO_RAW("intref trajectory configured: %s\n", trajectory_name);
+			print_line("note: source mode unchanged, use 'mc_raptor mode set intref' to activate internal reference");
+			print_trajectory_summary(command);
+
+			if (command.id == TRAJECTORY_ID_CIRCLE) {
+				const IntRefStatusSnapshot snapshot = runtime.statusSnapshot();
+
+				if (snapshot.circle_center_valid) {
+					PX4_INFO_RAW("circle center: x=%.3f y=%.3f z=%.3f\n",
+						     (double)snapshot.circle_center_position[0],
+						     (double)snapshot.circle_center_position[1],
+						     (double)snapshot.circle_center_position[2]);
+
+				} else {
+					print_line("circle center: unavailable (activate intref circle once to capture anchor)");
+				}
+			}
+
+			return PX4_OK;
+		}
 
 	PX4_ERR("unknown intref subcommand: %s", subcommand);
 	print_intref_usage();

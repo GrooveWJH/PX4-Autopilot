@@ -141,6 +141,15 @@ void Raptor::step_internal_reference_if_needed(hrt_abstime current_time, bool ne
 
 	if (intref_step_result.produced_setpoint) {
 		_trajectory_setpoint = intref_step_result.setpoint;
+
+		const bool publish_runtime_setpoint =
+			intref_step_result.reference_source != mc_raptor_intref::ReferenceSource::EXTERNAL;
+
+		if (publish_runtime_setpoint) {
+			trajectory_setpoint_s published_setpoint = _trajectory_setpoint;
+			published_setpoint.timestamp = current_time;
+			_intref_trajectory_setpoint_pub.publish(published_setpoint);
+		}
 	}
 
 	if (intref_step_result.internal_reference_valid) {

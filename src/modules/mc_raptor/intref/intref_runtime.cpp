@@ -588,6 +588,10 @@ void IntRefRuntimeManager::updateStatusSnapshot()
 	_status_snapshot.transition_active = _transition_active;
 	_status_snapshot.transition_progress = _transition_progress;
 	_status_snapshot.transition_remaining_s = _transition_remaining_s;
+	_status_snapshot.circle_center_valid = false;
+	_status_snapshot.circle_center_position[0] = NAN;
+	_status_snapshot.circle_center_position[1] = NAN;
+	_status_snapshot.circle_center_position[2] = NAN;
 
 	const TrajectoryCommand *selected_command = selectTrajectoryCommand();
 	_status_snapshot.reference_source = resolveReferenceSource(selected_command);
@@ -601,6 +605,20 @@ void IntRefRuntimeManager::updateStatusSnapshot()
 		strncpy(_status_snapshot.active_trajectory_name, selected_command->name,
 			sizeof(_status_snapshot.active_trajectory_name) - 1);
 		_status_snapshot.active_trajectory_name[sizeof(_status_snapshot.active_trajectory_name) - 1] = '\0';
+
+		if (selected_command->id == TRAJECTORY_ID_CIRCLE && _activation_anchor_valid && selected_command->arg_count >= 2) {
+			const float radius = fmaxf(selected_command->args[0], 0.001f);
+			const float speed_sign = selected_command->args[1] >= 0.0f ? 1.0f : -1.0f;
+			auto &q = _activation_orientation;
+			matrix::Quatf q_activation_frame(q[0], q[1], q[2], q[3]);
+			matrix::Vector3f center_activation_frame =
+				q_activation_frame.rotateVector(matrix::Vector3f(0.0f, speed_sign * radius, 0.0f));
+
+			_status_snapshot.circle_center_position[0] = +(_activation_position[0] + center_activation_frame(0));
+			_status_snapshot.circle_center_position[1] = -(_activation_position[1] + center_activation_frame(1));
+			_status_snapshot.circle_center_position[2] = -(_activation_position[2] + center_activation_frame(2));
+			_status_snapshot.circle_center_valid = true;
+		}
 	}
 }
 

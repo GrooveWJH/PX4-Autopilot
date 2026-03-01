@@ -34,7 +34,7 @@
 #ifndef POSITION_TARGET_LOCAL_NED_HPP
 #define POSITION_TARGET_LOCAL_NED_HPP
 
-#include <uORB/topics/vehicle_local_position_setpoint.h>
+#include <uORB/topics/trajectory_setpoint.h>
 
 class MavlinkStreamPositionTargetLocalNed : public MavlinkStream
 {
@@ -49,47 +49,47 @@ public:
 
 	unsigned get_size() override
 	{
-		return _pos_sp_sub.advertised() ? MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED_LEN + MAVLINK_NUM_NON_PAYLOAD_BYTES : 0;
+		return _traj_sp_sub.advertised() ? MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED_LEN + MAVLINK_NUM_NON_PAYLOAD_BYTES : 0;
 	}
 
 private:
 	explicit MavlinkStreamPositionTargetLocalNed(Mavlink *mavlink) : MavlinkStream(mavlink) {}
 
-	uORB::Subscription _pos_sp_sub{ORB_ID(vehicle_local_position_setpoint)};
+	uORB::Subscription _traj_sp_sub{ORB_ID(trajectory_setpoint)};
 
 	bool send() override
 	{
-		vehicle_local_position_setpoint_s pos_sp;
+		trajectory_setpoint_s pos_sp;
 
-		if (_pos_sp_sub.update(&pos_sp)) {
+		if (_traj_sp_sub.copy(&pos_sp)) {
 			mavlink_position_target_local_ned_t msg{};
 
 			msg.time_boot_ms = pos_sp.timestamp / 1000;
 			msg.coordinate_frame = MAV_FRAME_LOCAL_NED;
 
 			// position
-			if (!PX4_ISFINITE(pos_sp.x)) {
+			if (!PX4_ISFINITE(pos_sp.position[0])) {
 				msg.type_mask |= POSITION_TARGET_TYPEMASK_X_IGNORE;
 			}
 
-			if (!PX4_ISFINITE(pos_sp.y)) {
+			if (!PX4_ISFINITE(pos_sp.position[1])) {
 				msg.type_mask |= POSITION_TARGET_TYPEMASK_Y_IGNORE;
 			}
 
-			if (!PX4_ISFINITE(pos_sp.z)) {
+			if (!PX4_ISFINITE(pos_sp.position[2])) {
 				msg.type_mask |= POSITION_TARGET_TYPEMASK_Z_IGNORE;
 			}
 
 			// velocity
-			if (!PX4_ISFINITE(pos_sp.vx)) {
+			if (!PX4_ISFINITE(pos_sp.velocity[0])) {
 				msg.type_mask |= POSITION_TARGET_TYPEMASK_VX_IGNORE;
 			}
 
-			if (!PX4_ISFINITE(pos_sp.vy)) {
+			if (!PX4_ISFINITE(pos_sp.velocity[1])) {
 				msg.type_mask |= POSITION_TARGET_TYPEMASK_VY_IGNORE;
 			}
 
-			if (!PX4_ISFINITE(pos_sp.vz)) {
+			if (!PX4_ISFINITE(pos_sp.velocity[2])) {
 				msg.type_mask |= POSITION_TARGET_TYPEMASK_VZ_IGNORE;
 			}
 
@@ -116,12 +116,12 @@ private:
 				msg.type_mask |= POSITION_TARGET_TYPEMASK_YAW_RATE_IGNORE;
 			}
 
-			msg.x = pos_sp.x;
-			msg.y = pos_sp.y;
-			msg.z = pos_sp.z;
-			msg.vx = pos_sp.vx;
-			msg.vy = pos_sp.vy;
-			msg.vz = pos_sp.vz;
+			msg.x = pos_sp.position[0];
+			msg.y = pos_sp.position[1];
+			msg.z = pos_sp.position[2];
+			msg.vx = pos_sp.velocity[0];
+			msg.vy = pos_sp.velocity[1];
+			msg.vz = pos_sp.velocity[2];
 			msg.afx = pos_sp.acceleration[0];
 			msg.afy = pos_sp.acceleration[1];
 			msg.afz = pos_sp.acceleration[2];

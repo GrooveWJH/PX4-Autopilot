@@ -126,6 +126,7 @@ private:
 	uORB::Publication<actuator_motors_s> _actuator_motors_pub{ORB_ID(actuator_motors)};
 	uORB::Publication<raptor_status_s> _raptor_status_pub{ORB_ID(raptor_status)};
 	uORB::Publication<raptor_input_s> _raptor_input_pub{ORB_ID(raptor_input)};
+	uORB::Publication<trajectory_setpoint_s> _intref_trajectory_setpoint_pub{ORB_ID(trajectory_setpoint)};
 	uORB::Publication<tune_control_s> _tune_control_pub{ORB_ID(tune_control)};
 	uORB::Publication<register_ext_component_request_s> _register_ext_component_request_pub{ORB_ID(register_ext_component_request)};
 	uORB::Publication<unregister_ext_component_s> _unregister_ext_component_pub{ORB_ID(unregister_ext_component)};

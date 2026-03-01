@@ -184,6 +184,12 @@ int Raptor::print_status()
 	PX4_INFO_RAW("transition: active=%s progress=%.3f remaining=%.3fs\n",
 		     snapshot.transition_active ? "true" : "false",
 		     (double)snapshot.transition_progress, (double)snapshot.transition_remaining_s);
+	if (snapshot.circle_center_valid) {
+		PX4_INFO_RAW("circle center: x=%.3f y=%.3f z=%.3f\n",
+			     (double)snapshot.circle_center_position[0],
+			     (double)snapshot.circle_center_position[1],
+			     (double)snapshot.circle_center_position[2]);
+	}
 	PX4_INFO_RAW("setpoint: pos=(%.3f %.3f %.3f) vel=(%.3f %.3f %.3f) yaw=%.3f yawspeed=%.3f\n",
 		     (double)_trajectory_setpoint.position[0], (double)_trajectory_setpoint.position[1], (double)_trajectory_setpoint.position[2],
 		     (double)_trajectory_setpoint.velocity[0], (double)_trajectory_setpoint.velocity[1], (double)_trajectory_setpoint.velocity[2],
