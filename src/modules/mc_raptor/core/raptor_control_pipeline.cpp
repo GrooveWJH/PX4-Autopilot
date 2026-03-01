@@ -305,6 +305,8 @@ void Raptor::update_executor_frequency_statistics(const EXECUTOR_CONFIG::EXECUTO
 
 void Raptor::execute_policy_and_publish(hrt_abstime current_time, bool next_active, raptor_status_s &status)
 {
+	perf_count(_loop_interval_policy_perf);
+
 	rl_tools::inference::applications::l2f::Observation<EXECUTOR_SPEC> observation;
 	rl_tools::inference::applications::l2f::Action<EXECUTOR_SPEC> action;
 	observe(observation);
