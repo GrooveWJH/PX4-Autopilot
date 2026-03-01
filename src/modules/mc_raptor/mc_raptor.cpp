@@ -181,6 +181,8 @@ int Raptor::print_status()
 		 snapshot.hold_pending_capture ? "true" : "false");
 	PX4_INFO("hold anchor: x=%.3f y=%.3f z=%.3f yaw=%.3f", (double)snapshot.hold_position[0], (double)snapshot.hold_position[1],
 		 (double)snapshot.hold_position[2], (double)snapshot.hold_yaw);
+	PX4_INFO("transition: active=%s progress=%.3f remaining=%.3fs", snapshot.transition_active ? "true" : "false",
+		 (double)snapshot.transition_progress, (double)snapshot.transition_remaining_s);
 	PX4_INFO("setpoint: pos=(%.3f %.3f %.3f) vel=(%.3f %.3f %.3f) yaw=%.3f yawspeed=%.3f",
 		 (double)_trajectory_setpoint.position[0], (double)_trajectory_setpoint.position[1], (double)_trajectory_setpoint.position[2],
 		 (double)_trajectory_setpoint.velocity[0], (double)_trajectory_setpoint.velocity[1], (double)_trajectory_setpoint.velocity[2],

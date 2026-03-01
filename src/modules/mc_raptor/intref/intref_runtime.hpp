@@ -20,6 +20,9 @@ struct IntRefStatusSnapshot {
 	bool hold_pending_capture = false;
 	float hold_position[3] {0.0f, 0.0f, 0.0f};
 	float hold_yaw = 0.0f;
+	bool transition_active = false;
+	float transition_progress = 0.0f;
+	float transition_remaining_s = 0.0f;
 };
 
 struct IntRefStepInput {
@@ -27,6 +30,7 @@ struct IntRefStepInput {
 	bool vehicle_active = false;
 	bool just_activated = false;
 	float position[3] {0.0f, 0.0f, 0.0f};
+	float linear_velocity[3] {0.0f, 0.0f, 0.0f};
 	float attitude_q[4] {1.0f, 0.0f, 0.0f, 0.0f};
 };
 
@@ -55,6 +59,7 @@ public:
 	bool setReferenceMode(ReferenceMode mode, char *error, size_t error_len);
 	ReferenceMode referenceMode() const;
 	bool canUseIntref() const;
+	void setTransitionConfig(float transition_time_s, float max_yaw_rate_rad_s);
 
 	IntRefStepResult step(const IntRefStepInput &input);
 	IntRefStatusSnapshot statusSnapshot() const;
@@ -73,6 +78,11 @@ private:
 	void updateStatusSnapshot();
 	bool validateSetpoint(const Setpoint &setpoint) const;
 	void activateHoldFromPluginFailure(const IntRefStepInput &input, const char *reason, IntRefStepResult &result);
+	trajectory_setpoint_s measuredSetpoint(const IntRefStepInput &input) const;
+	trajectory_setpoint_s blendTransitionSetpoint(const trajectory_setpoint_s &target, const IntRefStepInput &input);
+	void applyYawContinuity(const IntRefStepInput &input, bool limit_yaw_rate, trajectory_setpoint_s &setpoint);
+	void finalizeProducedSetpoint(const IntRefStepInput &input, bool limit_yaw_rate, IntRefStepResult &result);
+	void resetTransitionState();
 
 	InternalReferenceConfigured _configured_mode = InternalReferenceConfigured::NONE;
 	ReferenceMode _reference_mode = ReferenceMode::EXTREF;
@@ -94,6 +104,18 @@ private:
 	bool _hold_pending_capture = false;
 	float _hold_position[3] {0.0f, 0.0f, 0.0f};
 	float _hold_yaw = 0.0f;
+
+	float _transition_time_s = 2.0f;
+	float _transition_max_yaw_rate_rad_s = 0.8f;
+	bool _transition_active = false;
+	hrt_abstime _transition_start_time = 0;
+	float _transition_duration_s = 0.0f;
+	trajectory_setpoint_s _transition_from_setpoint {};
+	bool _last_output_valid = false;
+	trajectory_setpoint_s _last_output_setpoint {};
+	hrt_abstime _last_output_timestamp = 0;
+	float _transition_progress = 0.0f;
+	float _transition_remaining_s = 0.0f;
 
 	IntRefStatusSnapshot _status_snapshot {};
 };

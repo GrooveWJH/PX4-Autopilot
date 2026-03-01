@@ -48,6 +48,7 @@ void Raptor::update_runtime_config_from_params(raptor_status_s &status)
 	{
 		LockGuard intref_lock{_intref_runtime_mutex};
 		_intref_runtime.setConfiguredMode(internal_reference);
+		_intref_runtime.setTransitionConfig(_param_mc_raptor_transition_time.get(), _param_mc_raptor_transition_yaw_rate.get());
 		const mc_raptor_intref::IntRefStatusSnapshot snapshot = _intref_runtime.statusSnapshot();
 		reference_source = snapshot.reference_source;
 		fill_status_from_intref_snapshot(snapshot, status);
@@ -115,6 +116,9 @@ void Raptor::step_internal_reference_if_needed(hrt_abstime current_time, bool ne
 	intref_step_input.position[0] = position[0];
 	intref_step_input.position[1] = position[1];
 	intref_step_input.position[2] = position[2];
+	intref_step_input.linear_velocity[0] = linear_velocity[0];
+	intref_step_input.linear_velocity[1] = linear_velocity[1];
+	intref_step_input.linear_velocity[2] = linear_velocity[2];
 	intref_step_input.attitude_q[0] = _vehicle_attitude.q[0];
 	intref_step_input.attitude_q[1] = _vehicle_attitude.q[1];
 	intref_step_input.attitude_q[2] = _vehicle_attitude.q[2];

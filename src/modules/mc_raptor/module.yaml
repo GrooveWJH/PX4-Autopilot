@@ -29,6 +29,35 @@ parameters:
             default: false
             category: System
 
+        MC_RAPTOR_TRNS_T:
+            description:
+                short: Intref transition duration
+                long: |
+                    Duration of the smoothing transition when entering intref mode or re-anchoring/changing trajectories.
+                    During this interval trajectory time is held at t=0, and the command is blended from current state to the trajectory start.
+                    Set to 0 to disable position/velocity blending while keeping yaw continuity handling.
+            type: float
+            min: 0.0
+            max: 10.0
+            unit: s
+            decimal: 2
+            default: 2.0
+            category: System
+
+        MC_RAPTOR_TRNS_Y:
+            description:
+                short: Intref transition yaw rate limit
+                long: |
+                    Maximum yaw slew rate during intref transition smoothing.
+                    Higher values make heading align faster; lower values make transitions softer.
+            type: float
+            min: 0.2
+            max: 3.0
+            unit: rad/s
+            decimal: 2
+            default: 0.8
+            category: System
+
         MC_RAPTOR_INTREF:
             description:
                 short: Configured default internal trajectory for intref mode

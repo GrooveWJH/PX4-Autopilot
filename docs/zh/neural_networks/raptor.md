@@ -105,26 +105,66 @@ In our experience, feeding the `trajectory_setpoint` via MAVLink (even via WiFi 
 But we do not want to constrain this module to only platforms that have a companion board.
 
 For this reason we have integrated a simple internal reference trajectory generator for testing and benchmarking purposes.
-It supports position (constant position and yaw setpoint) as well as configurable [Lissajous trajectories](https://en.wikipedia.org/wiki/Lissajous_curve).
+It supports position (constant position and yaw setpoint), configurable [Lissajous trajectories](https://en.wikipedia.org/wiki/Lissajous_curve), and configurable circle trajectories with tangent-facing yaw.
 
 The Lissajous generator can, for example, generate smooth figure-eight trajectories that contain interesting accelerations for benchmarking and testing purposes.
 Please refer to the embedded configurator later in this section to explore the Lissajous parameters and view the resulting trajectories.
 
-To use the internal reference generator, select the mode: `0`: Off/activation position tracking, `1`: Lissajous
+To use the internal reference generator, select the mode: `0`: Off/activation position tracking, `1`: Lissajous, `2`: Circle
 
 ```sh
-param set MC_RAPTOR_INTREF 1
+param set MC_RAPTOR_INTREF 1 # Lissajous
+# or
+param set MC_RAPTOR_INTREF 2 # Circle
 ```
 
-Restart (ctrl+c)
+The source mode can be changed at runtime (no reboot required).
 
 ```sh
 commander takeoff
 commander mode ext{RAPTOR_MODE_ID}
-mc_raptor intref lissajous 0.5 1 0 2 1 1 10 3
+mc_raptor mode set intref
+mc_raptor intref set lissajous 0.5 1 0 2 1 1 10 3
+mc_raptor intref set circle 1.5 2.0 3.0
+mc_raptor mode set hold
+mc_raptor mode set extref
+mc_raptor mode show
+mc_raptor intref show
 ```
 
+For the circle command, the speed sign controls direction (`speed > 0`: counter-clockwise, `speed < 0`: clockwise).
+`mc_raptor mode set hold` activates a runtime hold mode: RAPTOR keeps `ext1` and holds the current pose.
+`mc_raptor intref set ...` only updates internal trajectory configuration and does not switch source mode.
+Use `mc_raptor mode set intref` to activate internal reference and `mc_raptor mode set extref` to force external `trajectory_setpoint`.
+When switching to intref (or re-anchoring/changing trajectories in intref), RAPTOR applies a transition phase:
+it blends from the current measured state to the trajectory start, keeps trajectory time at `t=0` during the blend,
+then starts trajectory time after transition completion.
+Tune this behavior with:
+- `MC_RAPTOR_TRNS_T` (transition duration, seconds)
+- `MC_RAPTOR_TRNS_Y` (yaw slew-rate limit during transition, rad/s)
+
 The trajectory is relative to the position and yaw of the vehicle at the point where the RAPTOR mode is activated (or the position and yaw where the parameters are changed if it is already activated).
+
+#### Trajectory Plugin Extension
+
+You can add a custom trajectory by implementing a new plugin in:
+
+- `src/modules/mc_raptor/intref/plugins/<name>_plugin.cpp`
+
+Each plugin provides:
+
+- `parse_validate(...)`: validates CLI arguments and emits a `TrajectoryCommand`
+- `evaluate(...)`: generates `Setpoint` in the activation frame
+
+Then register it once in:
+
+- `src/modules/mc_raptor/intref/intref_registry.cpp`
+
+After registration, it is automatically available to:
+
+- `mc_raptor intref list`
+- `mc_raptor intref help <name>`
+- `mc_raptor intref set <name> ...`
 
 You can adjust the parameters of the trajectory with the following tool.
 Make sure to copy the generated CLI string at the end:

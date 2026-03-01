@@ -60,6 +60,16 @@ commander mode ext1
 
 If RAPTOR is not mapped to `ext1` on your setup, switch by mode name in QGC (RAPTOR) instead of CLI.
 
+Runtime transition tuning:
+
+```bash
+param set MC_RAPTOR_TRNS_T 2.0  # intref transition duration (s)
+param set MC_RAPTOR_TRNS_Y 0.8  # transition yaw slew-rate limit (rad/s)
+```
+
+When entering intref (or re-anchoring/changing trajectories while in intref), RAPTOR blends from current measured state
+to the trajectory start and keeps trajectory time at `t=0` during the blend.
+
 
 #### Usage with External Trajectory Setpoint
 

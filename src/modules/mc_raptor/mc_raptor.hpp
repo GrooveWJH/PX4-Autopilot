@@ -193,6 +193,8 @@ private:
 		(ParamInt<px4::params::IMU_GYRO_RATEMAX>) _param_imu_gyro_ratemax,
 		(ParamBool<px4::params::MC_RAPTOR_VERBOS>) _param_mc_raptor_verbose,
 		(ParamBool<px4::params::MC_RAPTOR_OFFB>) _param_mc_raptor_offboard,
+		(ParamFloat<px4::params::MC_RAPTOR_TRNS_T>) _param_mc_raptor_transition_time,
+		(ParamFloat<px4::params::MC_RAPTOR_TRNS_Y>) _param_mc_raptor_transition_yaw_rate,
 		(ParamInt<px4::params::MC_RAPTOR_INTREF>) _param_mc_raptor_intref
 	)
 };
