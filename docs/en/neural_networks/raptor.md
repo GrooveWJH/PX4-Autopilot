@@ -133,6 +133,7 @@ mc_raptor intref show
 ```
 
 For the circle command, the speed sign controls direction (`speed > 0`: counter-clockwise, `speed < 0`: clockwise).
+Circle now starts with tangent aligned to vehicle forward at activation/re-anchor, which minimizes initial yaw-alignment transients.
 `mc_raptor mode set hold` activates a runtime hold mode: RAPTOR keeps `ext1` and holds the current pose.
 `mc_raptor intref set ...` only updates internal trajectory configuration and does not switch source mode.
 Use `mc_raptor mode set intref` to activate internal reference and `mc_raptor mode set extref` to force external `trajectory_setpoint`.

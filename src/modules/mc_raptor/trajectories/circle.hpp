@@ -36,14 +36,14 @@ inline Setpoint circle(float time, const CircleParameters &params)
 	const float theta = speed_sign * s / radius;
 
 	Setpoint setpoint{};
-	setpoint.position[0] = radius * (cosf(theta) - 1.0f);
-	setpoint.position[1] = radius * sinf(theta);
+	setpoint.position[0] = radius * sinf(theta);
+	setpoint.position[1] = speed_sign * radius * (1.0f - cosf(theta));
 	setpoint.position[2] = 0.0f;
 
-	setpoint.linear_velocity[0] = -sinf(theta) * speed_sign * speed_abs_cmd;
-	setpoint.linear_velocity[1] = cosf(theta) * speed_sign * speed_abs_cmd;
+	setpoint.linear_velocity[0] = cosf(theta) * speed_abs_cmd;
+	setpoint.linear_velocity[1] = speed_sign * sinf(theta) * speed_abs_cmd;
 	setpoint.linear_velocity[2] = 0.0f;
-	setpoint.yaw = theta + speed_sign * (static_cast<float>(M_PI) * 0.5f);
+	setpoint.yaw = atan2f(setpoint.linear_velocity[1], setpoint.linear_velocity[0]);
 
 	setpoint.yaw_rate = speed_sign * speed_abs_cmd / radius;
 

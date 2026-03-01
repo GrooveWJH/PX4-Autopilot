@@ -75,6 +75,8 @@ parameters:
                     - `mc_raptor intref set lissajous <A> <B> <C> <fa> <fb> <fc> <duration> <ramp>`
                     - `mc_raptor intref set circle <radius_m> <speed_mps> <ramp_s>`
                     - `mc_raptor intref show`
+                    Circle semantics: starts with tangent aligned to vehicle forward at activation/re-anchor;
+                    `speed > 0` is counter-clockwise and `speed < 0` is clockwise.
             type: enum
             values:
                 0: None

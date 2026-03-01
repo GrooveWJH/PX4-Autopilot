@@ -69,6 +69,7 @@ param set MC_RAPTOR_TRNS_Y 0.8  # transition yaw slew-rate limit (rad/s)
 
 When entering intref (or re-anchoring/changing trajectories while in intref), RAPTOR blends from current measured state
 to the trajectory start and keeps trajectory time at `t=0` during the blend.
+For `intref set circle`, the trajectory starts with tangent aligned to vehicle forward at activation/re-anchor.
 
 
 #### Usage with External Trajectory Setpoint

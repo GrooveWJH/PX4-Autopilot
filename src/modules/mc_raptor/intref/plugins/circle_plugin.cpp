@@ -92,7 +92,7 @@ Setpoint evaluate_circle(float time_s, const TrajectoryCommand &command)
 const TrajectoryPluginDescriptor g_circle_plugin {
 	TRAJECTORY_ID_CIRCLE,
 	"circle",
-	"Horizontal circle with tangent-facing yaw",
+	"Horizontal circle; starts with forward-aligned tangent yaw",
 	"mc_raptor intref set circle <radius_m> <speed_mps> <ramp_s>",
 	parse_validate_circle,
 	evaluate_circle
