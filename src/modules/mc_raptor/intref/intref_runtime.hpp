@@ -82,6 +82,7 @@ private:
 	trajectory_setpoint_s blendTransitionSetpoint(const trajectory_setpoint_s &target, const IntRefStepInput &input);
 	void applyYawContinuity(const IntRefStepInput &input, bool limit_yaw_rate, trajectory_setpoint_s &setpoint);
 	void finalizeProducedSetpoint(const IntRefStepInput &input, bool limit_yaw_rate, IntRefStepResult &result);
+	void updateTransitionDurationForTarget(const trajectory_setpoint_s &target, const IntRefStepInput &input);
 	void resetTransitionState();
 
 	InternalReferenceConfigured _configured_mode = InternalReferenceConfigured::NONE;
@@ -113,6 +114,7 @@ private:
 	trajectory_setpoint_s _transition_from_setpoint {};
 	bool _last_output_valid = false;
 	trajectory_setpoint_s _last_output_setpoint {};
+	float _last_output_yaw_unwrapped = 0.0f;
 	hrt_abstime _last_output_timestamp = 0;
 	float _transition_progress = 0.0f;
 	float _transition_remaining_s = 0.0f;

@@ -102,6 +102,7 @@ void IntRefRuntimeManager::reset()
 	_hold_position[2] = 0.0f;
 	_hold_yaw = 0.0f;
 	_last_output_valid = false;
+	_last_output_yaw_unwrapped = 0.0f;
 	_last_output_timestamp = 0;
 	resetTransitionState();
 	updateStatusSnapshot();
@@ -294,23 +295,30 @@ trajectory_setpoint_s IntRefRuntimeManager::blendTransitionSetpoint(const trajec
 	}
 
 	const float elapsed = static_cast<float>(input.now - _transition_start_time) / 1e6f;
-	const float u = constrainf_scalar(elapsed / _transition_duration_s, 0.0f, 1.0f);
-	const float a = smoothstep01(u);
+	const float position_transition_duration = fmaxf(_transition_time_s, 0.0f);
+	const float u_position = (position_transition_duration > 0.0f)
+				 ? constrainf_scalar(elapsed / position_transition_duration, 0.0f, 1.0f)
+				 : 1.0f;
+	const float u_yaw = (_transition_duration_s > 0.0f) ? constrainf_scalar(elapsed / _transition_duration_s, 0.0f, 1.0f) : 1.0f;
+	const float a_position = smoothstep01(u_position);
+	const float a_yaw = smoothstep01(u_yaw);
 	trajectory_setpoint_s blended {};
 
 	for (int i = 0; i < 3; ++i) {
-		blended.position[i] = _transition_from_setpoint.position[i] + a * (target.position[i] - _transition_from_setpoint.position[i]);
-		blended.velocity[i] = _transition_from_setpoint.velocity[i] + a * (target.velocity[i] - _transition_from_setpoint.velocity[i]);
+		blended.position[i] = _transition_from_setpoint.position[i]
+				     + a_position * (target.position[i] - _transition_from_setpoint.position[i]);
+		blended.velocity[i] = _transition_from_setpoint.velocity[i]
+				     + a_position * (target.velocity[i] - _transition_from_setpoint.velocity[i]);
 	}
 
 	const float unwrapped_target_yaw = unwrap_angle_near(_transition_from_setpoint.yaw, target.yaw);
-	blended.yaw = _transition_from_setpoint.yaw + a * (unwrapped_target_yaw - _transition_from_setpoint.yaw);
-	blended.yawspeed = _transition_from_setpoint.yawspeed + a * (target.yawspeed - _transition_from_setpoint.yawspeed);
+	blended.yaw = _transition_from_setpoint.yaw + a_yaw * (unwrapped_target_yaw - _transition_from_setpoint.yaw);
+	blended.yawspeed = _transition_from_setpoint.yawspeed + a_yaw * (target.yawspeed - _transition_from_setpoint.yawspeed);
 
-	_transition_progress = u;
-	_transition_remaining_s = (1.0f - u) * _transition_duration_s;
+	_transition_progress = fminf(u_position, u_yaw);
+	_transition_remaining_s = fmaxf((1.0f - u_position) * position_transition_duration, (1.0f - u_yaw) * _transition_duration_s);
 
-	if (u >= 1.0f) {
+	if (u_position >= 1.0f && u_yaw >= 1.0f) {
 		_transition_active = false;
 		_transition_progress = 1.0f;
 		_transition_remaining_s = 0.0f;
@@ -324,25 +332,54 @@ trajectory_setpoint_s IntRefRuntimeManager::blendTransitionSetpoint(const trajec
 void IntRefRuntimeManager::applyYawContinuity(const IntRefStepInput &input, bool limit_yaw_rate, trajectory_setpoint_s &setpoint)
 {
 	if (!_last_output_valid) {
+		_last_output_yaw_unwrapped = setpoint.yaw;
+		setpoint.yaw = wrap_pi(setpoint.yaw);
 		return;
 	}
 
-	const float unwrapped_yaw = unwrap_angle_near(_last_output_setpoint.yaw, setpoint.yaw);
+	const float unwrapped_yaw = unwrap_angle_near(_last_output_yaw_unwrapped, setpoint.yaw);
+	float output_yaw_unwrapped = unwrapped_yaw;
 
 	if (limit_yaw_rate && _transition_max_yaw_rate_rad_s > 0.0f
 	    && _last_output_timestamp > 0 && input.now > _last_output_timestamp) {
 		const float dt = static_cast<float>(input.now - _last_output_timestamp) / 1e6f;
 		const float max_delta = _transition_max_yaw_rate_rad_s * dt;
-		const float delta = unwrapped_yaw - _last_output_setpoint.yaw;
+		const float delta = unwrapped_yaw - _last_output_yaw_unwrapped;
 		const float limited_delta = constrainf_scalar(delta, -max_delta, max_delta);
-		setpoint.yaw = _last_output_setpoint.yaw + limited_delta;
+		output_yaw_unwrapped = _last_output_yaw_unwrapped + limited_delta;
 
 		if (dt > 1e-6f) {
 			setpoint.yawspeed = limited_delta / dt;
 		}
+	}
 
-	} else {
-		setpoint.yaw = unwrapped_yaw;
+	_last_output_yaw_unwrapped = output_yaw_unwrapped;
+	setpoint.yaw = wrap_pi(output_yaw_unwrapped);
+}
+
+void IntRefRuntimeManager::updateTransitionDurationForTarget(const trajectory_setpoint_s &target, const IntRefStepInput &input)
+{
+	if (!_transition_active) {
+		return;
+	}
+
+	const float base_duration = fmaxf(_transition_time_s, 0.0f);
+	float yaw_duration = 0.0f;
+
+	if (_transition_max_yaw_rate_rad_s > 1e-3f) {
+		const float unwrapped_target_yaw = unwrap_angle_near(_transition_from_setpoint.yaw, target.yaw);
+		const float yaw_delta = fabsf(unwrapped_target_yaw - _transition_from_setpoint.yaw);
+		// smoothstep peaks at 1.5x average slope, account for this to avoid yaw lag.
+		yaw_duration = 1.5f * yaw_delta / _transition_max_yaw_rate_rad_s;
+	}
+
+	_transition_duration_s = fmaxf(base_duration, yaw_duration);
+
+	if (_transition_duration_s <= 0.0f) {
+		_transition_active = false;
+		_transition_progress = 1.0f;
+		_transition_remaining_s = 0.0f;
+		_activation_time = input.now;
 	}
 }
 
@@ -414,6 +451,7 @@ IntRefStepResult IntRefRuntimeManager::step(const IntRefStepInput &input)
 	if (_reference_mode == ReferenceMode::EXTREF) {
 		resetTransitionState();
 		_last_output_valid = false;
+		_last_output_yaw_unwrapped = 0.0f;
 		_last_output_timestamp = 0;
 		updateStatusSnapshot();
 		return result;
@@ -458,10 +496,10 @@ IntRefStepResult IntRefRuntimeManager::step(const IntRefStepInput &input)
 	if (reanchored) {
 		_transition_from_setpoint = measuredSetpoint(input);
 		_transition_start_time = input.now;
-		_transition_duration_s = fmaxf(_transition_time_s, 0.0f);
-		_transition_active = _transition_duration_s > 0.0f;
-		_transition_progress = _transition_active ? 0.0f : 1.0f;
-		_transition_remaining_s = _transition_active ? _transition_duration_s : 0.0f;
+		_transition_duration_s = 0.0f;
+		_transition_active = true;
+		_transition_progress = 0.0f;
+		_transition_remaining_s = 0.0f;
 	}
 
 	if (!_activation_anchor_valid) {
@@ -493,6 +531,7 @@ IntRefStepResult IntRefRuntimeManager::step(const IntRefStepInput &input)
 	target_setpoint.velocity[1] = -linear_velocity_activation_frame(1);
 	target_setpoint.velocity[2] = -linear_velocity_activation_frame(2);
 	target_setpoint.yawspeed = -setpoint.yaw_rate;
+	updateTransitionDurationForTarget(target_setpoint, input);
 
 	const bool transition_active_before_blend = _transition_active;
 	result.produced_setpoint = true;

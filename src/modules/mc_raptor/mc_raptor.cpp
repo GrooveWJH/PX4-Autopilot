@@ -169,24 +169,25 @@ int Raptor::print_status()
 	perf_print_counter(_loop_interval_perf);
 	perf_print_counter(_loop_interval_policy_perf);
 	PX4_INFO_RAW("Checkpoint: %s\n", checkpoint_name);
-	PX4_INFO("intref configured: %s (%d)", mc_raptor_intref::configured_mode_name(snapshot.configured_mode),
-		 (int)snapshot.configured_mode);
-	PX4_INFO("reference mode: %s (%d)", mc_raptor_intref::reference_mode_name(snapshot.reference_mode),
-		 (int)snapshot.reference_mode);
-	PX4_INFO("reference source: %s (%d)", mc_raptor_intref::reference_source_name(snapshot.reference_source),
-		 (int)snapshot.reference_source);
-	PX4_INFO("active trajectory: id=%u name=%s", (unsigned)snapshot.active_trajectory_id,
-		 snapshot.active_trajectory_name[0] == '\0' ? "None" : snapshot.active_trajectory_name);
-	PX4_INFO("hold: active=%s pending_capture=%s", snapshot.hold_active ? "true" : "false",
-		 snapshot.hold_pending_capture ? "true" : "false");
-	PX4_INFO("hold anchor: x=%.3f y=%.3f z=%.3f yaw=%.3f", (double)snapshot.hold_position[0], (double)snapshot.hold_position[1],
-		 (double)snapshot.hold_position[2], (double)snapshot.hold_yaw);
-	PX4_INFO("transition: active=%s progress=%.3f remaining=%.3fs", snapshot.transition_active ? "true" : "false",
-		 (double)snapshot.transition_progress, (double)snapshot.transition_remaining_s);
-	PX4_INFO("setpoint: pos=(%.3f %.3f %.3f) vel=(%.3f %.3f %.3f) yaw=%.3f yawspeed=%.3f",
-		 (double)_trajectory_setpoint.position[0], (double)_trajectory_setpoint.position[1], (double)_trajectory_setpoint.position[2],
-		 (double)_trajectory_setpoint.velocity[0], (double)_trajectory_setpoint.velocity[1], (double)_trajectory_setpoint.velocity[2],
-		 (double)_trajectory_setpoint.yaw, (double)_trajectory_setpoint.yawspeed);
+	PX4_INFO_RAW("intref configured: %s (%d)\n", mc_raptor_intref::configured_mode_name(snapshot.configured_mode),
+		     (int)snapshot.configured_mode);
+	PX4_INFO_RAW("reference mode: %s (%d)\n", mc_raptor_intref::reference_mode_name(snapshot.reference_mode),
+		     (int)snapshot.reference_mode);
+	PX4_INFO_RAW("reference source: %s (%d)\n", mc_raptor_intref::reference_source_name(snapshot.reference_source),
+		     (int)snapshot.reference_source);
+	PX4_INFO_RAW("active trajectory: id=%u name=%s\n", (unsigned)snapshot.active_trajectory_id,
+		     snapshot.active_trajectory_name[0] == '\0' ? "None" : snapshot.active_trajectory_name);
+	PX4_INFO_RAW("hold: active=%s pending_capture=%s\n", snapshot.hold_active ? "true" : "false",
+		     snapshot.hold_pending_capture ? "true" : "false");
+	PX4_INFO_RAW("hold anchor: x=%.3f y=%.3f z=%.3f yaw=%.3f\n", (double)snapshot.hold_position[0],
+		     (double)snapshot.hold_position[1], (double)snapshot.hold_position[2], (double)snapshot.hold_yaw);
+	PX4_INFO_RAW("transition: active=%s progress=%.3f remaining=%.3fs\n",
+		     snapshot.transition_active ? "true" : "false",
+		     (double)snapshot.transition_progress, (double)snapshot.transition_remaining_s);
+	PX4_INFO_RAW("setpoint: pos=(%.3f %.3f %.3f) vel=(%.3f %.3f %.3f) yaw=%.3f yawspeed=%.3f\n",
+		     (double)_trajectory_setpoint.position[0], (double)_trajectory_setpoint.position[1], (double)_trajectory_setpoint.position[2],
+		     (double)_trajectory_setpoint.velocity[0], (double)_trajectory_setpoint.velocity[1], (double)_trajectory_setpoint.velocity[2],
+		     (double)_trajectory_setpoint.yaw, (double)_trajectory_setpoint.yawspeed);
 	return 0;
 }
 
@@ -226,7 +227,7 @@ int Raptor::custom_command(int argc, char *argv[])
 int Raptor::print_usage(const char *reason)
 {
 	if (reason) {
-		PX4_WARN("%s\n", reason);
+		PX4_INFO_RAW("%s\n", reason);
 	}
 
 	PRINT_MODULE_DESCRIPTION(

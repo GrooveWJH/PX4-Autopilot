@@ -36,6 +36,7 @@ parameters:
                     Duration of the smoothing transition when entering intref mode or re-anchoring/changing trajectories.
                     During this interval trajectory time is held at t=0, and the command is blended from current state to the trajectory start.
                     Set to 0 to disable position/velocity blending while keeping yaw continuity handling.
+                    Effective transition time may be extended internally to satisfy the yaw slew-rate limit.
             type: float
             min: 0.0
             max: 10.0

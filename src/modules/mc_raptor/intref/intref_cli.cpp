@@ -14,9 +14,14 @@ namespace mc_raptor_intref
 namespace
 {
 
+void print_line(const char *text)
+{
+	PX4_INFO_RAW("%s\n", text);
+}
+
 void print_trajectory_summary(const TrajectoryCommand &command)
 {
-	PX4_INFO("trajectory=%s id=%u", command.name, (unsigned)command.id);
+	PX4_INFO_RAW("trajectory=%s id=%u\n", command.name, (unsigned)command.id);
 	PX4_INFO_RAW("args:");
 
 	for (uint8_t i = 0; i < command.arg_count; ++i) {
@@ -29,17 +34,21 @@ void print_trajectory_summary(const TrajectoryCommand &command)
 void print_snapshot(const IntRefRuntimeManager &runtime)
 {
 	const IntRefStatusSnapshot snapshot = runtime.statusSnapshot();
-	PX4_INFO("configured mode: %s (%u)", configured_mode_name(snapshot.configured_mode), (unsigned)snapshot.configured_mode);
-	PX4_INFO("reference mode: %s (%u)", reference_mode_name(snapshot.reference_mode), (unsigned)snapshot.reference_mode);
-	PX4_INFO("reference source: %s (%u)", reference_source_name(snapshot.reference_source), (unsigned)snapshot.reference_source);
-	PX4_INFO("active trajectory: id=%u name=%s", (unsigned)snapshot.active_trajectory_id,
-		 snapshot.active_trajectory_name[0] == '\0' ? "None" : snapshot.active_trajectory_name);
-	PX4_INFO("hold: active=%s pending_capture=%s", snapshot.hold_active ? "true" : "false",
-		 snapshot.hold_pending_capture ? "true" : "false");
-	PX4_INFO("hold anchor: x=%.3f y=%.3f z=%.3f yaw=%.3f", (double)snapshot.hold_position[0],
-		 (double)snapshot.hold_position[1], (double)snapshot.hold_position[2], (double)snapshot.hold_yaw);
-	PX4_INFO("transition: active=%s progress=%.3f remaining=%.3fs", snapshot.transition_active ? "true" : "false",
-		 (double)snapshot.transition_progress, (double)snapshot.transition_remaining_s);
+	PX4_INFO_RAW("configured mode: %s (%u)\n", configured_mode_name(snapshot.configured_mode),
+		     (unsigned)snapshot.configured_mode);
+	PX4_INFO_RAW("reference mode: %s (%u)\n", reference_mode_name(snapshot.reference_mode),
+		     (unsigned)snapshot.reference_mode);
+	PX4_INFO_RAW("reference source: %s (%u)\n", reference_source_name(snapshot.reference_source),
+		     (unsigned)snapshot.reference_source);
+	PX4_INFO_RAW("active trajectory: id=%u name=%s\n", (unsigned)snapshot.active_trajectory_id,
+		     snapshot.active_trajectory_name[0] == '\0' ? "None" : snapshot.active_trajectory_name);
+	PX4_INFO_RAW("hold: active=%s pending_capture=%s\n", snapshot.hold_active ? "true" : "false",
+		     snapshot.hold_pending_capture ? "true" : "false");
+	PX4_INFO_RAW("hold anchor: x=%.3f y=%.3f z=%.3f yaw=%.3f\n", (double)snapshot.hold_position[0],
+		     (double)snapshot.hold_position[1], (double)snapshot.hold_position[2], (double)snapshot.hold_yaw);
+	PX4_INFO_RAW("transition: active=%s progress=%.3f remaining=%.3fs\n",
+		     snapshot.transition_active ? "true" : "false",
+		     (double)snapshot.transition_progress, (double)snapshot.transition_remaining_s);
 }
 
 } // namespace
@@ -90,7 +99,7 @@ int handle_mode_command(IntRefRuntimeManager &runtime, int argc, char *argv[])
 			return PX4_ERROR;
 		}
 
-		PX4_INFO("reference mode set to: %s", reference_mode_name(mode));
+		PX4_INFO_RAW("reference mode set to: %s\n", reference_mode_name(mode));
 		return PX4_OK;
 	}
 
@@ -112,10 +121,10 @@ int handle_intref_command(IntRefRuntimeManager &runtime, int argc, char *argv[])
 	if (strcmp(subcommand, "list") == 0) {
 		const TrajectoryPluginDescriptor *plugins = registry.plugins();
 		const size_t plugin_count = registry.count();
-		PX4_INFO("available trajectories (%u):", (unsigned)plugin_count);
+		PX4_INFO_RAW("available trajectories (%u):\n", (unsigned)plugin_count);
 
 		for (size_t i = 0; i < plugin_count; ++i) {
-			PX4_INFO("- %s (id=%u): %s", plugins[i].name, (unsigned)plugins[i].id, plugins[i].description);
+			PX4_INFO_RAW("- %s (id=%u): %s\n", plugins[i].name, (unsigned)plugins[i].id, plugins[i].description);
 		}
 
 		return PX4_OK;
@@ -134,7 +143,7 @@ int handle_intref_command(IntRefRuntimeManager &runtime, int argc, char *argv[])
 			return PX4_ERROR;
 		}
 
-		PX4_INFO("%s", plugin->usage);
+		PX4_INFO_RAW("%s\n", plugin->usage);
 		return PX4_OK;
 	}
 
@@ -142,13 +151,13 @@ int handle_intref_command(IntRefRuntimeManager &runtime, int argc, char *argv[])
 		print_snapshot(runtime);
 		const TrajectoryCommand lissajous = runtime.configuredLissajousCommand();
 		const TrajectoryCommand circle = runtime.configuredCircleCommand();
-		PX4_INFO("configured lissajous:");
+		print_line("configured lissajous:");
 		print_trajectory_summary(lissajous);
-		PX4_INFO("configured circle:");
+		print_line("configured circle:");
 		print_trajectory_summary(circle);
 
 		if (runtime.hasSelectedInternalTrajectory()) {
-			PX4_INFO("selected internal trajectory:");
+			print_line("selected internal trajectory:");
 			print_trajectory_summary(runtime.selectedInternalTrajectory());
 		}
 
@@ -187,8 +196,8 @@ int handle_intref_command(IntRefRuntimeManager &runtime, int argc, char *argv[])
 			return PX4_ERROR;
 		}
 
-		PX4_INFO("intref trajectory configured: %s", trajectory_name);
-		PX4_INFO("note: source mode unchanged, use 'mc_raptor mode set intref' to activate internal reference");
+		PX4_INFO_RAW("intref trajectory configured: %s\n", trajectory_name);
+		print_line("note: source mode unchanged, use 'mc_raptor mode set intref' to activate internal reference");
 		print_trajectory_summary(command);
 		return PX4_OK;
 	}
@@ -200,18 +209,18 @@ int handle_intref_command(IntRefRuntimeManager &runtime, int argc, char *argv[])
 
 void print_mode_usage()
 {
-	PX4_INFO_RAW("  mode show\n");
-	PX4_INFO_RAW("  mode set <extref|intref|hold>\n");
+	PX4_INFO_RAW("     mode show\n");
+	PX4_INFO_RAW("     mode set <extref|intref|hold>\n");
 }
 
 void print_intref_usage()
 {
-	PX4_INFO_RAW("  intref list\n");
-	PX4_INFO_RAW("  intref show\n");
-	PX4_INFO_RAW("  intref help [trajectory_name]\n");
-	PX4_INFO_RAW("  intref set lissajous <A> <B> <C> <fa> <fb> <fc> <duration> <ramp>\n");
-	PX4_INFO_RAW("  intref set circle <radius_m> <speed_mps> <ramp_s>\n");
-	PX4_INFO_RAW("  intref set <trajectory_name> <args...>\n");
+	PX4_INFO_RAW("     intref list\n");
+	PX4_INFO_RAW("     intref show\n");
+	PX4_INFO_RAW("     intref help [trajectory_name]\n");
+	PX4_INFO_RAW("     intref set lissajous <A> <B> <C> <fa> <fb> <fc> <duration> <ramp>\n");
+	PX4_INFO_RAW("     intref set circle <radius_m> <speed_mps> <ramp_s>\n");
+	PX4_INFO_RAW("     intref set <trajectory_name> <args...>\n");
 }
 
 } // namespace mc_raptor_intref
