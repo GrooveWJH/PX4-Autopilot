@@ -8,6 +8,11 @@ px4_add_module(
 	STACK_MAIN 4000
 	SRCS
 		mc_raptor.cpp
+		intref/intref_registry.cpp
+		intref/intref_runtime.cpp
+		intref/intref_cli.cpp
+		intref/plugins/lissajous_plugin.cpp
+		intref/plugins/circle_plugin.cpp
 	MODULE_CONFIG
 		module.yaml
 	DEPENDS
@@ -18,4 +23,4 @@ px4_add_module(
 	)
 
 target_compile_features(modules__mc_raptor PRIVATE cxx_std_17)
-target_compile_options(modules__mc_raptor PRIVATE -Wno-unused-result)
+target_compile_options(modules__mc_raptor PRIVATE -Wno-unused-result -Wno-cast-align)

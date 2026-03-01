@@ -31,13 +31,24 @@ parameters:
 
         MC_RAPTOR_INTREF:
             description:
-                short: Use internal reference instead of trajectory_setpoint
+                short: Configured default internal trajectory for intref mode
                 long: |
-                    When enabled, instead of using the trajectory_setpoint, the position and yaw of the vehicle at the point when the Raptor mode is activated will be used as reference.
-                    Use `mc_raptor intref lissajous <A> <B> <C> <fa> <fb> <fc> <duration> <ramp>` to configure the trajectory.
+                    Configured default internal trajectory for RAPTOR intref mode.
+                    Runtime control is split into two command domains:
+                    - `mc_raptor mode set <extref|intref|hold>` selects the active reference source.
+                    - `mc_raptor intref set <trajectory> ...` configures internal trajectory parameters.
+                    `intref set` does not switch source mode. Use `mode set intref` to activate internal reference.
+                    Runtime commands:
+                    - `mc_raptor mode show`
+                    - `mc_raptor mode set <extref|intref|hold>`
+                    - `mc_raptor intref list`
+                    - `mc_raptor intref set lissajous <A> <B> <C> <fa> <fb> <fc> <duration> <ramp>`
+                    - `mc_raptor intref set circle <radius_m> <speed_mps> <ramp_s>`
+                    - `mc_raptor intref show`
             type: enum
             values:
                 0: None
                 1: Lissajous
+                2: Circle
             default: 0
             category: System

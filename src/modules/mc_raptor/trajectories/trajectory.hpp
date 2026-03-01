@@ -1,3 +1,5 @@
+#pragma once
+
 struct Setpoint {
 	float position[3];
 	float yaw;

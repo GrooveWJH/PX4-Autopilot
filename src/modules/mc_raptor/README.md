@@ -1,5 +1,30 @@
 # RAPTOR
 
+## Documentation Migration Notice
+
+RAPTOR 中文文档已迁移到 `PX4_Handbook/rl/raptor`，请优先阅读以下入口：
+
+- Runtime logic and control:
+  - https://github.com/GrooveWJH/PX4_Handbook/blob/main/rl/raptor/raptor_runtime_logic_and_control.md
+- Build, deploy, and flight SOP:
+  - https://github.com/GrooveWJH/PX4_Handbook/blob/main/rl/raptor/raptor_build_deploy_and_flight_sop.md
+- Mode gates, troubleshooting, and performance:
+  - https://github.com/GrooveWJH/PX4_Handbook/blob/main/rl/raptor/raptor_mode_gates_troubleshooting_and_perf.md
+- RAPTOR index:
+  - https://github.com/GrooveWJH/PX4_Handbook/blob/main/rl/raptor/index.md
+
+This module README keeps quick command notes only.
+
+## Code map
+
+- `mc_raptor.cpp`: module entrypoints, lifecycle orchestration, CLI/status.
+- `core/raptor_checkpoint_io.cpp`: policy checkpoint loading and policy self-test.
+- `core/raptor_mode_lifecycle.cpp`: mode registration/configuration and arming-check reply.
+- `core/raptor_reference_pipeline.cpp`: extref/intref/hold reference update and stale fallback.
+- `core/raptor_control_pipeline.cpp`: observe -> executor -> publish control pipeline.
+- `core/raptor_math.hpp`: quaternion/rotation and clipping math helpers used by observe.
+- `intref/*`: runtime trajectory registry/CLI/plugins.
+
 
 ## SITL
 #### Standalone Usage (Without External Trajectory Setpoint)
@@ -26,11 +51,14 @@ commander takeoff
 commander status
 ```
 
-Note the external mode ID of `RAPTOR` in the status report
+Note the external mode slot of `RAPTOR` in the status report.
+In this PX4 version, `commander mode` CLI supports `ext1` explicitly.
 
 ```bash
-commander mode ext{RAPTOR_MODE_ID}
+commander mode ext1
 ```
+
+If RAPTOR is not mapped to `ext1` on your setup, switch by mode name in QGC (RAPTOR) instead of CLI.
 
 
 #### Usage with External Trajectory Setpoint

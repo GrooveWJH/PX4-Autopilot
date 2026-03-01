@@ -3,7 +3,7 @@
 # Diagnostic messages for the Raptor foundation policy.
 # This diagnostic data is useful for debugging (e.g. identifying missing input information).
 
-uint32 MESSAGE_VERSION = 0
+uint32 MESSAGE_VERSION = 4
 
 uint64 timestamp # [us] Time since system start
 uint64 timestamp_sample # [us] Sampling timestamp of the data this control response is based on
@@ -40,6 +40,27 @@ float32 trajectory_setpoint_dt_mean # [us] The average trajectory setpoint arriv
 float32 trajectory_setpoint_dt_max # [us] The max trajectory setpoint arrival time interval (since Raptor mode activation and within NUM_TRAJECTORY_SETPOINT_DTS received trajectory_setpoint messages)
 float32 trajectory_setpoint_dt_max_since_activation # [us] The max trajectory setpoint arrival time interval (since Raptor mode activation)
 
+uint8 internal_reference_configured # [enum] Configured internal reference mode from MC_RAPTOR_INTREF
+uint8 INTERNAL_REFERENCE_CONFIGURED_NONE = 0
+uint8 INTERNAL_REFERENCE_CONFIGURED_LISSAJOUS = 1
+uint8 INTERNAL_REFERENCE_CONFIGURED_CIRCLE = 2
+
+uint8 reference_mode # [enum] Requested reference mode from runtime command layer
+uint8 REFERENCE_MODE_EXTREF = 0
+uint8 REFERENCE_MODE_INTREF = 1
+uint8 REFERENCE_MODE_HOLD = 2
+
+uint8 reference_source # [enum] Active setpoint source used by Raptor
+uint8 REFERENCE_SOURCE_EXTERNAL = 0
+uint8 REFERENCE_SOURCE_INTERNAL_LISSAJOUS = 1
+uint8 REFERENCE_SOURCE_INTERNAL_CIRCLE = 2
+uint8 REFERENCE_SOURCE_HOLD = 3
+uint8 REFERENCE_SOURCE_INTREF_CUSTOM = 4
+
+uint8 active_trajectory_id # [enum] Currently active trajectory plugin id (0 means none)
+char[24] active_trajectory_name # Active trajectory plugin name (empty when none)
+
+bool hold_active # [bool] Runtime hold mode active
 float32[3] internal_reference_position # [m] [@frame FLU] Internal reference position
 float32[3] internal_reference_linear_velocity # [m/s] [@frame FLU] Internal reference linear velocity
 
